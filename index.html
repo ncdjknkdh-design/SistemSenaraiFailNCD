@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pendaftaran Fail NCD JKNK</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 35px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        
+        /* HEADER RASMI KERAJAAN */
+        .header-container { text-align: center; border-bottom: 3px solid #0056b3; padding-bottom: 20px; margin-bottom: 25px; }
+        .jata-negara { width: 90px; height: auto; margin-bottom: 10px; }
+        .header-container h1 { margin: 0 0 5px 0; font-size: 24px; color: #1a1a1a; letter-spacing: 1px; }
+        .header-container h3 { margin: 0; font-size: 15px; color: #495057; font-weight: normal; line-height: 1.4; text-transform: uppercase; }
+        
+        /* HOME VIEW & SEARCH */
+        #homeView { display: block; }
+        .global-search-container { margin: 25px 0 35px 0; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .global-search-input { width: 60%; padding: 12px 20px; font-size: 15px; border: 2px solid #e9ecef; border-radius: 30px; outline: none; transition: 0.3s; background-color: #f8f9fa; }
+        .global-search-input:focus { border-color: #0056b3; background-color: #fff; box-shadow: 0 0 8px rgba(0,86,179,0.15); }
+        .global-search-btn { padding: 12px 25px; font-size: 14px; background: #0056b3; color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,86,179,0.2); }
+        .global-search-btn:hover { background: #004494; transform: translateY(-1px); }
+
+        #globalSearchResult { display: none; margin-bottom: 30px; background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .section-title { font-weight: bold; color: #495057; font-size: 16px; display: block; margin-bottom: 15px; border-left: 4px solid #0056b3; padding-left: 10px; }
+        
+        /* FAIL GRID */
+        .fail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .fail-btn { background-color: #fff; border: 1px solid #dee2e6; padding: 14px 12px; text-align: left; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: bold; color: #495057; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .fail-btn:hover { background-color: #f8f9fa; border-color: #0056b3; color: #0056b3; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,86,179,0.1); }
+
+        #formView { display: none; }
+        
+        /* FORM HEADER (DALAM TAB) */
+        .form-header-bar { display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; padding: 15px 25px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef; position: relative; }
+        .back-btn { background-color: #6c757d; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; z-index: 2; transition: 0.2s; }
+        .back-btn:hover { background-color: #5a6268; }
+        
+        .form-header-info { position: absolute; left: 0; right: 0; text-align: center; z-index: 1; }
+        .form-header-info .nama-fail { font-size: 18px; font-weight: bold; color: #0056b3; text-transform: uppercase; margin-bottom: 4px;}
+        
+        .fail-actions-container { display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-nofail { background: #fff; border: 1px solid #ced4da; font-size: 14px; color: #333; font-weight: bold; cursor: pointer; padding: 5px 12px; border-radius: 20px; transition: 0.2s; }
+        .btn-nofail:hover { background: #e9ecef; border-color: #adb5bd; }
+        
+        .salin-btn { background: #fff; border: 1px solid #adb5bd; border-radius: 20px; padding: 5px 12px; cursor: pointer; font-size: 13px; font-weight: bold; color: #495057; transition: 0.2s; }
+        .salin-btn:hover { background: #e2e6ea; border-color: #ced4da; }
+        .salin-btn.berjaya { background: #28a745; color: white; border-color: #218838; }
+        
+        .submit-btn { width: 100%; padding: 14px; background-color: #0056b3; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; transition: 0.2s; }
+        .submit-btn:hover { background-color: #004494; }
+        .submit-btn:disabled { background-color: #6c757d; cursor: not-allowed; }
+        
+        #statusMessage, #terdahuluStatusMessage, #editStatusMessage { margin-top: 15px; text-align: center; font-weight: bold; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+
+        /* JADUAL */
+        .table-container { margin-top: 40px; border-top: 2px solid #eee; padding-top: 25px; display: none; }
+        .table-container h3 { color: #333; margin-bottom: 15px; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; border-radius: 8px; overflow: hidden; }
+        table th, table td { border: 1px solid #dee2e6; padding: 12px 15px; text-align: left; vertical-align: top; }
+        table th { background-color: #0056b3; color: white; font-weight: 600; }
+        table tr:nth-child(even) { background-color: #f8f9fa; }
+        table tr:hover { background-color: #f1f3f5; }
+        
+        .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; position: relative; top: 1px; }
+        .dot-masuk { background-color: #dc3545; }
+        .dot-keluar { background-color: #0d6efd; }
+        
+        .legend-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 13px; font-weight: bold; color: #555; background: #f8f9fa; padding: 12px 20px; border-radius: 6px; border: 1px solid #e9ecef; }
+        .search-input { padding: 8px 12px; border-radius: 4px; border: 1px solid #ced4da; width: 300px; font-size: 13px; outline: none; }
+        
+        .fail-link { color: #0056b3; text-decoration: none; font-weight: bold; font-size: 12px; background: #e9ecef; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 6px; transition: 0.2s;}
+        .fail-link:hover { background: #dde2e6; }
+        .no-surat-link { color: #0056b3; font-weight: bold; cursor: pointer; text-decoration: none; }
+        .no-surat-link:hover { text-decoration: underline; }
+
+        /* FORM KEMASUKAN */
+        .layout-borang { display: flex; flex-wrap: wrap; gap: 25px; background: #fdfdfd; padding: 25px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .bahagian-kiri { flex: 0 0 160px; border-right: 2px dashed #dee2e6; padding-right: 20px; }
+        .bahagian-kanan { flex: 1; min-width: 450px; }
+        .isian-garis { border: none; border-bottom: 2px dotted #adb5bd; background: transparent; padding: 4px 8px; outline: none; font-weight: bold; color: #0056b3; font-size: 15px; transition: 0.2s; }
+        .isian-garis:focus { border-bottom: 2px solid #0056b3; background: #f0f8ff; }
+        .upload-input { padding: 8px; font-size: 12px; cursor: pointer; border: 1px solid #ced4da; border-radius: 4px; background: #fff; margin-left: 0; width: 100%; box-sizing: border-box; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 30px; border-radius: 12px; width: 95%; max-width: 850px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; color: #0056b3; font-size: 20px; }
+        .close-btn { color: #adb5bd; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .close-btn:hover { color: #343a40; }
+        
+        .file-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px 15px; margin-bottom: 8px; border-radius: 6px; font-size: 13px; border: 1px solid #e9ecef;}
+        .delete-file-btn { background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 5px 10px; font-size: 12px; font-weight: bold; }
+        
+        .btn-group { display: flex; gap: 15px; margin-top: 25px; }
+        .btn-batal { flex: 1; padding: 12px; background: #6c757d; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-padam { flex: 1; padding: 12px; background: #dc3545; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-simpan { flex: 2; padding: 12px; background: #28a745; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- HEADER RASMI -->
+    <div class="header-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/26/Coat_of_arms_of_Malaysia.svg" alt="Jata Negara" class="jata-negara">
+        <h1>SISTEM PENDAFTARAN FAIL</h1>
+        <h3>UNIT KAWALAN PENYAKIT TIDAK BERJANGKIT (NCD)<br>JABATAN KESIHATAN NEGERI KEDAH</h3>
+    </div>
+    
+    <!-- Home View -->
+    <div id="homeView">
+        
+        <!-- CARIAN GLOBAL -->
+        <div class="global-search-container">
+            <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Cari dalam semua fail (No. Fail, Nama, Catatan)..." onkeydown="if(event.key === 'Enter') jalankanCarianGlobal()">
+            <button class="global-search-btn" onclick="jalankanCarianGlobal()" id="btnGlobalSearch">🔍 Cari Data</button>
+        </div>
+        
+        <!-- Paparan Keputusan Carian Global -->
+        <div id="globalSearchResult">
+            <h3 style="border-bottom: 2px solid #e9ecef; padding-bottom: 10px; color:#333; margin-top: 0;">Keputusan Carian <span id="globalSearchStatus" style="font-size:14px; font-weight:normal; color:#888;"></span></h3>
+            <table style="margin-bottom: 10px;">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Kategori (Tab)</th>
+                        <th style="width: 25%;">No. Surat</th>
+                        <th>Tajuk (Gabungan) & Lampiran</th>
+                    </tr>
+                </thead>
+                <tbody id="globalSearchBody"></tbody>
+            </table>
+        </div>
+
+        <label class="section-title">Sila Pilih Fail:</label>
+        <div class="fail-grid">
+            <button class="fail-btn" onclick="pilihFail('1.PENTADBIRAN', 'JKNKED.KA3 100-1/1')">1. PENTADBIRAN</button>
+            <button class="fail-btn" onclick="pilihFail('2.PEKELILING', 'JKNKED.KA3 100-1/2')">2. PEKELILING</button>
+            <button class="fail-btn" onclick="pilihFail('3.MESYUARAT', 'JKNKED.KA3 100-1/3')">3. MESYUARAT</button>
+            <button class="fail-btn" onclick="pilihFail('4.KURSUS', 'JKNKED.KA3 100-1/4')">4. KURSUS</button>
+            <button class="fail-btn" onclick="pilihFail('5.PEMBANGUNAN', 'JKNKED.KA3 200-1/1')">5. PEMBANGUNAN</button>
+            <button class="fail-btn" onclick="pilihFail('6.ASET', 'JKNKED.KA3 300-1/1')">6. ASET</button>
+            <button class="fail-btn" onclick="pilihFail('7.LO/ PKB', 'JKNKED.KA3 400-1/2')">7. LO/ PKB</button>
+            <button class="fail-btn" onclick="pilihFail('8.KONTRAK', 'JKNKED.KA3 400-1/3')">8. KONTRAK</button>
+            <button class="fail-btn" onclick="pilihFail('9.HARTA MODAL', 'JKNKED.KA3 400-1/4')">9. HARTA MODAL</button>
+            <button class="fail-btn" onclick="pilihFail('10.PERUNTUKAN', 'JKNKED.KA3 400-1/5')">10. PERUNTUKAN</button>
+            <button class="fail-btn" onclick="pilihFail('11.PENGURUSAN STOR', 'JKNKED.KA3 400-1/6')">11. PENGURUSAN STOR</button>
+            <button class="fail-btn" onclick="pilihFail('12.KESIHATAN MENTAL / MINDA SIHAT', 'JKNKED.KA3 600-1/1')">12. KESIHATAN MENTAL / MINDA SIHAT</button>
+            <button class="fail-btn" onclick="pilihFail('13.TASKA', 'JKNKED.KA3 600-1/2')">13. TASKA</button>
+            <button class="fail-btn" onclick="pilihFail('14.KANSER', 'JKNKED.KA3 600-1/3')">14. KANSER</button>
+            <button class="fail-btn" onclick="pilihFail('15.KANSER KOLOREKTAL', 'JKNKED.KA3 600-1/4')">15. KANSER KOLOREKTAL</button>
+            <button class="fail-btn" onclick="pilihFail('16.VIP KEGANASAN RUMAH TANGGA', 'JKNKED.KA3 600-1/5')">16. VIP KEGANASAN RUMAH TANGGA</button>
+            <button class="fail-btn" onclick="pilihFail('17.NATIONAL HEALTH MORBIDITI SURVEY', 'JKNKED.KA3 600-1/6')">17. NATIONAL HEALTH MORBIDITI SURVEY</button>
+            <button class="fail-btn" onclick="pilihFail('18.TEMBAKAU / HASIL TEMBAKAU', 'JKNKED.KA3 600-1/7')">18. TEMBAKAU / HASIL TEMBAKAU</button>
+            <button class="fail-btn" onclick="pilihFail('19.PENYALAHGUNAAN SUBTANS', 'JKNKED.KA3 600-1/8')">19. PENYALAHGUNAAN SUBTANS</button>
+            <button class="fail-btn" onclick="pilihFail('20.DIABETIK/ HPT/ CVD', 'JKNKED.KA3 600-1/9')">20. DIABETIK/ HPT/ CVD</button>
+            <button class="fail-btn" onclick="pilihFail('21.KOSPEN', 'JKNKED.KA3 600-1/10')">21. KOSPEN</button>
+            <button class="fail-btn" onclick="pilihFail('22.PFA', 'JKNKED.KA3 600-1/11')">22. PFA</button>
+            <button class="fail-btn" onclick="pilihFail('23.NDR', 'JKNKED.KA3 600-1/12')">23. NDR</button>
+            <button class="fail-btn" onclick="pilihFail('24.PROGRAM KATARAK / KEBUTAAN', 'JKNKED.KA3 600-1/13')">24. PROGRAM KATARAK / KEBUTAAN</button>
+            <button class="fail-btn" onclick="pilihFail('25.SAMBUTAN HARI KESIHATAN', 'JKNKED.KA3 600-1/14')">25. SAMBUTAN HARI KESIHATAN</button>
+            <button class="fail-btn" onclick="pilihFail('26.BLUE RIBBON CAMPAIGN', 'JKNKED.KA3 600-1/15')">26. BLUE RIBBON CAMPAIGN</button>
+            <button class="fail-btn" onclick="pilihFail('27.WARGA AKTIF WAGA PRODUKTIF', 'JKNKED.KA3 600-1/16')">27. WARGA AKTIF WAGA PRODUKTIF</button>
+            <button class="fail-btn" onclick="pilihFail('28.REAGEN/ BEKALAN', 'JKNKED.KA3 600-1/17')">28. REAGEN/ BEKALAN</button>
+            <button class="fail-btn" onclick="pilihFail('29.KAJIAN', 'JKNKED.KA3 600-1/18')">29. KAJIAN</button>
+            <button class="fail-btn" onclick="pilihFail('30.CME', 'JKNKED.KA3 600-1/19')">30. CME</button>
+            <button class="fail-btn" onclick="pilihFail('31.LAPORAN VENDING MACHINE', 'JKNKED.KA3 600-1/20')">31. LAPORAN VENDING MACHINE</button>
+            <button class="fail-btn" onclick="pilihFail('32.KPI / KUALITI', 'JKNKED.KA3 600-1/21')">32. KPI / KUALITI</button>
+            <button class="fail-btn" onclick="pilihFail('33.VA', 'JKNKED.KA3 600-1/22')">33. VA</button>
+            <button class="fail-btn" onclick="pilihFail('34.TALIAN MHPSS', 'JKNKED.KA3 600-1/23')">34. TALIAN MHPSS</button>
+            <button class="fail-btn" onclick="pilihFail('35.SUBCOMMITTEE NCD', 'JKNKED.KA3 600-1/24')">35. SUBCOMMITTEE NCD</button>
+        </div>
+    </div>
+
+    <!-- Form View -->
+    <div id="formView">
+        <div class="form-header-bar">
+            <button class="back-btn" onclick="kembaliUtama()">⬅ Kembali ke Senarai</button>
+            
+            <div class="form-header-info">
+                <div class="nama-fail" id="topNamaFail">FAIL PENTADBIRAN</div>
+                <div class="fail-actions-container">
+                    <button class="btn-nofail" title="Ubah Jilid / Skip Nombor / Daftar Terdahulu" onclick="bukaModalTerdahulu()">
+                        No. Fail Seterusnya: <span id="topNoFailSeterusnya">Menyemak...</span>
+                    </button>
+                    <!-- Butang Salin -->
+                    <button class="salin-btn" id="btnSalin" onclick="salinNoFail()" title="Salin No. Surat Terkini">📋 Salin</button>
+                </div>
+            </div>
+            
+            <div style="width: 150px;"></div> 
+        </div>
+
+        <form id="failForm">
+            <div class="layout-borang">
+                <div class="bahagian-kiri">
+                    <label style="color: #333; font-size: 15px; display:block; margin-bottom: 15px;">Jenis Surat:</label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 15px;">
+                        <input type="radio" name="jenisSurat" value="MASUK" style="width: 18px; height: 18px;" onchange="janaAyat('baru')">
+                        <span style="color: #dc3545; font-weight: bold; font-size: 14px;">🔴 MASUK</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="jenisSurat" value="KELUAR" style="width: 18px; height: 18px;" onchange="janaAyat('baru')">
+                        <span style="color: #0d6efd; font-weight: bold; font-size: 14px;">🔵 KELUAR</span>
+                    </label>
+                </div>
+                <div class="bahagian-kanan" id="ruanganAyatBaru">
+                    <div style="display: flex; height: 100%; align-items: center; color: #888; font-style: italic;">
+                        Sila pilih jenis surat di sebelah kiri terlebih dahulu.
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="submit-btn" id="submitBtn" onclick="hantarData('register')">Daftar Surat</button>
+        </form>
+
+        <div id="statusMessage"></div>
+
+        <div class="table-container" id="ruangJadual">
+            <h3>Rekod Pendaftaran Terkini (<span id="tajukJadual"></span>)</h3>
+            <div class="legend-container">
+                <div>
+                    <span class="dot dot-masuk"></span> Surat Masuk &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="dot dot-keluar"></span> Surat Keluar
+                </div>
+                <div>
+                    🔍 <input type="text" id="carianInput" class="search-input" placeholder="Tapis jadual di bawah (No Surat / Nama)..." oninput="tapisJadual()">
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">No. Surat <span style="font-size: 11px; font-weight: normal; color:#e2e6ea;">(Klik untuk Kemaskini)</span></th>
+                        <th>Tajuk (Gabungan) & Lampiran Fail</th>
+                    </tr>
+                </thead>
+                <tbody id="isiJadual"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL: PENGURUSAN JILID & DAFTAR KHUSUS ================= -->
+<div id="terdahuluModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Pengurusan Jilid & Pendaftaran Khusus</h3>
+            <span class="close-btn" onclick="tutupModalTerdahulu()" title="Tutup">&times;</span>
+        </div>
+        
+        <div style="background: #fff3cd; padding: 12px; border-radius: 6px; margin-bottom: 20px; color: #856404; border-left: 4px solid #ffeeba; font-size: 14px;">
+            <strong>Fungsi:</strong> Ruangan ini membolehkan anda menetapkan Jilid baharu, <em>melangkau (skip)</em> nombor, atau mendaftar fail terdahulu.<br>
+            <span style="font-size: 12px;">*Nota: Letakkan simbol <strong>-</strong> (sengkang) atau <strong>1</strong> pada ruangan No Jilid jika ia adalah Jilid 1.</span>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="font-weight:bold; font-size: 14px;">Asas No Fail:</label>
+                <input type="text" id="terdahuluBaseFail" readonly class="isian-garis" style="width:100%; border:none; background:#f8f9fa;">
+            </div>
+            <div style="width: 100px;">
+                <label style="font-weight:bold; font-size: 14px;">Jilid (JLD):</label>
+                <input type="text" id="terdahuluJilid" class="isian-garis" style="width:100%; border:1px solid #ced4da; border-radius:4px;" value="-">
+            </div>
+            <div style="width: 120px;">
+                <label style="font-weight:bold; font-size: 14px; color:#dc3545;">No. ( ) Surat:</label>
+                <input type="number" id="terdahuluNo" class="isian-garis" style="width:100%; border:1px solid #ced4da; border-radius:4px; color:#dc3545;" min="1">
+            </div>
+        </div>
+
+        <div class="layout-borang">
+            <div class="bahagian-kiri">
+                <label style="color: #333; font-size: 15px; display:block; margin-bottom: 15px;">Jenis Surat:</label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 15px;">
+                    <input type="radio" name="terdahuluJenisSurat" value="MASUK" style="width: 18px; height: 18px;" onchange="janaAyat('terdahulu')">
+                    <span style="color: #dc3545; font-weight: bold; font-size: 14px;">🔴 MASUK</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="radio" name="terdahuluJenisSurat" value="KELUAR" style="width: 18px; height: 18px;" onchange="janaAyat('terdahulu')">
+                    <span style="color: #0d6efd; font-weight: bold; font-size: 14px;">🔵 KELUAR</span>
+                </label>
+            </div>
+            <div class="bahagian-kanan" id="ruanganAyatTerdahulu"></div>
+        </div>
+        
+        <div id="terdahuluStatusMessage"></div>
+        
+        <div class="btn-group">
+            <button class="btn-batal" onclick="tutupModalTerdahulu()">Batal</button>
+            <button class="btn-simpan" id="btnSimpanTerdahulu" onclick="hantarData('edit_nofail')">Daftar Surat</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL: KEMASKINI / EDIT DATA ================= -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Kemaskini Rekod Surat</h3>
+            <span class="close-btn" onclick="tutupEditModal()" title="Tutup">&times;</span>
+        </div>
+        
+        <div style="background: #e9ecef; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; color: #495057; border-left: 4px solid #0056b3;">
+            No. Surat: <span id="editPaparanNoSurat" style="color: #0056b3;"></span>
+        </div>
+        
+        <div class="layout-borang">
+            <div class="bahagian-kiri">
+                <label style="color: #333; font-size: 15px; display:block; margin-bottom: 15px;">Jenis Surat:</label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 15px;">
+                    <input type="radio" name="editJenisSurat" value="MASUK" style="width: 18px; height: 18px;" onchange="janaAyat('edit')">
+                    <span style="color: #dc3545; font-weight: bold; font-size: 14px;">🔴 MASUK</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="radio" name="editJenisSurat" value="KELUAR" style="width: 18px; height: 18px;" onchange="janaAyat('edit')">
+                    <span style="color: #0d6efd; font-weight: bold; font-size: 14px;">🔵 KELUAR</span>
+                </label>
+            </div>
+            <div class="bahagian-kanan" id="ruanganAyatEdit"></div>
+        </div>
+        
+        <div style="border-top: 1px solid #dee2e6; padding-top: 20px; margin-top: 10px;">
+            <label style="font-weight: bold; color: #495057; font-size: 14px;">Lampiran Fail Sedia Ada:</label>
+            <div id="editFailSediaAdaBox" style="margin-top: 8px;"></div>
+        </div>
+
+        <div id="editStatusMessage"></div>
+        
+        <div class="btn-group">
+            <button class="btn-batal" onclick="tutupEditModal()">Batal</button>
+            <button class="btn-padam" id="btnPadamEdit" onclick="padamRekodPenuh()">Padam Rekod</button>
+            <button class="btn-simpan" id="btnSimpanEdit" onclick="simpanEdit()">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    const scriptURL = 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI';
+    
+    let kategoriTerpilih = '';
+    let noFailTerpilihBase = '';
+    let currentGlobalJilid = '-';
+    let dataSenaraiSemasa = []; 
+    let currentEditUrls = []; 
+    let currentEditNoSurat = '';
+    let currentCleanNoSuratSeterusnya = '';
+
+    // ==========================================
+    // FUNGSI CARIAN GLOBAL DI HOMEVIEW
+    // ==========================================
+    function jalankanCarianGlobal() {
+        let keyword = document.getElementById('globalSearchInput').value.trim();
+        let btn = document.getElementById('btnGlobalSearch');
+        let status = document.getElementById('globalSearchStatus');
+        let resultContainer = document.getElementById('globalSearchResult');
+        let tbody = document.getElementById('globalSearchBody');
+
+        if (keyword === "") {
+            resultContainer.style.display = 'none';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Mencari...";
+        status.innerText = "(Sedang memuat data...)";
+        resultContainer.style.display = 'block';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">Sila tunggu... Menyemak ke-35 fail.</td></tr>';
+
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: JSON.stringify({ action: 'global_search', keyword: keyword }),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = "🔍 Cari Data";
+            status.innerText = "";
+            tbody.innerHTML = '';
+
+            if (data.status === 'berjaya') {
+                if (data.hasil.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#dc3545; padding:20px;">Tiada rekod dijumpai untuk pencarian ini.</td></tr>';
+                } else {
+                    status.innerText = `(${data.hasil.length} rekod dijumpai)`;
+                    data.hasil.forEach(item => {
+                        let tr = document.createElement('tr');
+                        let dotClass = (item.jenis === 'MASUK') ? 'dot-masuk' : 'dot-keluar';
+                        let linksHtml = '';
+                        if(item.pautanUrl) {
+                            let urls = item.pautanUrl.split('\n');
+                            urls.forEach((url, idx) => {
+                                if(url.trim() !== '') linksHtml += `<br><a href="${url.trim()}" target="_blank" class="fail-link">📄 Lihat Fail ${urls.length > 1 ? (idx+1) : ''}</a>`;
+                            });
+                        }
+                        
+                        let tajukPapar = (item.tajuk && item.tajuk.trim() !== '') ? item.tajuk : '<span style="color:#aaa; font-style:italic;">(Tiada maklumat diisi)</span>';
+                        
+                        tr.innerHTML = `
+                            <td style="font-weight:bold; color:#555;">${item.kategori}</td>
+                            <td><span class="dot ${dotClass}"></span><a href="javascript:void(0)" class="no-surat-link" onclick="pilihDariCarian('${item.kategori}', '${item.noSurat}')" title="Klik untuk pergi ke Tab dan Edit">${item.noSurat}</a></td>
+                            <td>${tajukPapar} ${linksHtml}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#dc3545; padding:20px;">Ralat carian pelayan.</td></tr>';
+            }
+        }).catch(err => {
+            btn.disabled = false; btn.innerText = "🔍 Cari Data";
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#dc3545; padding:20px;">Ralat sambungan internet.</td></tr>';
+        });
+    }
+
+    function pilihDariCarian(namaTabSheet, noSuratTepat) {
+        let baseFailCode = noSuratTepat.split("JLD")[0].split(" (")[0].trim();
+        pilihFail(namaTabSheet, baseFailCode);
+        
+        setTimeout(() => {
+            if (document.getElementById('ruangJadual').style.display === 'block') {
+                bukaEditModal(noSuratTepat);
+            } else {
+                let checkExist = setInterval(function() {
+                    if (document.getElementById('ruangJadual').style.display === 'block') {
+                        clearInterval(checkExist);
+                        bukaEditModal(noSuratTepat);
+                    }
+                }, 500);
+            }
+        }, 1500);
+    }
+
+    // ==========================================
+    // FUNGSI UTAMA LAIN
+    // ==========================================
+    function pilihFail(namaTabSheet, baseFailCode) {
+        kategoriTerpilih = namaTabSheet;
+        noFailTerpilihBase = baseFailCode;
+        
+        let namaBersih = namaTabSheet.replace(/^\d+[\.\s]*/, '').trim();
+        let paparNamaFail = 'FAIL ' + namaBersih;
+        
+        document.getElementById('topNamaFail').innerText = paparNamaFail;
+        document.getElementById('tajukJadual').innerText = paparNamaFail;
+        
+        document.getElementById('topNoFailSeterusnya').innerHTML = 'Menyemak...';
+        currentCleanNoSuratSeterusnya = ''; 
+        
+        document.getElementById('ruangJadual').style.display = 'none'; 
+        document.getElementById('homeView').style.display = 'none';
+        document.getElementById('formView').style.display = 'block';
+        document.getElementById('statusMessage').innerHTML = ''; 
+        document.getElementById('carianInput').value = '';
+        
+        semakNombor();
+    }
+
+    function kembaliUtama() {
+        document.getElementById('homeView').style.display = 'block';
+        document.getElementById('formView').style.display = 'none';
+        let radios = document.getElementsByName('jenisSurat');
+        for(let i=0; i<radios.length; i++) radios[i].checked = false;
+        document.getElementById('ruanganAyatBaru').innerHTML = '<div style="display: flex; height: 100%; align-items: center; color: #888; font-style: italic;">Sila pilih jenis surat di sebelah kiri terlebih dahulu.</div>';
+    }
+
+    function janaAyat(mode) {
+        let jenisSelector, targetDiv, prefixId;
+        if (mode === 'baru') { jenisSelector = 'input[name="jenisSurat"]:checked'; targetDiv = 'ruanganAyatBaru'; prefixId = 'input'; }
+        else if (mode === 'edit') { jenisSelector = 'input[name="editJenisSurat"]:checked'; targetDiv = 'ruanganAyatEdit'; prefixId = 'editInput'; }
+        else if (mode === 'terdahulu') { jenisSelector = 'input[name="terdahuluJenisSurat"]:checked'; targetDiv = 'ruanganAyatTerdahulu'; prefixId = 'terdahuluInput'; }
+        
+        const jenisNode = document.querySelector(jenisSelector);
+        if (!jenisNode) return;
+        const jenis = jenisNode.value;
+
+        const prefixText = (jenis === 'MASUK') ? 'Surat DARIPADA' : 'Surat KEPADA';
+        const fontColor = (jenis === 'MASUK') ? '#dc3545' : '#0056b3';
+        const today = new Date().toISOString().split('T')[0];
+
+        let barisEmail = '';
+        if (jenis === 'KELUAR') {
+            barisEmail = `
+                <div style="margin-top: 15px; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="${prefixId}CheckEmail" checked style="width: 16px; height: 16px; cursor: pointer;">
+                    <label for="${prefixId}CheckEmail" style="font-weight: bold; color: #495057; font-size: 14px; margin: 0; cursor: pointer;">Telah di email kan pada</label>
+                    <input type="date" id="${prefixId}TarikhEmail" class="isian-garis" value="${today}">
+                </div>
+            `;
+        }
+
+        const html = `
+            <div style="line-height: 2.5; font-size: 15px;">
+                <span style="font-weight: bold; color: ${fontColor}; font-size: 16px;">${prefixText}</span> 
+                <input type="text" id="${prefixId}Pihak" class="isian-garis" placeholder="Nama pengirim/penerima..." style="width: 250px;">
+                
+                <span style="font-weight: bold;">bertarikh</span> 
+                <input type="date" id="${prefixId}Bth" class="isian-garis">
+                
+                <span style="font-weight: bold;">dimasukkan pada</span>
+                <input type="date" id="${prefixId}Masuk" class="isian-garis" value="${today}">
+                
+                <div style="margin-top: 10px; display: flex; align-items: flex-start; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1; margin-top: 6px;">
+                        <span style="font-weight: bold;">Catatan:</span>
+                        <input type="text" id="${prefixId}Catatan" class="isian-garis" placeholder="Subjek Surat / Diminitkan kepada..." style="flex: 1;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; border-left: 2px solid #e9ecef; padding-left: 15px; width:220px;">
+                        <span style="font-size: 11px; color: #6c757d; font-style: italic; margin-bottom: 5px;">*Upload fail (semasa daftar / kemaskini)</span>
+                        <input type="file" id="${prefixId}UploadPdf" accept=".pdf" multiple class="upload-input" title="Muat Naik Fail">
+                    </div>
+                </div>
+                ${barisEmail}
+            </div>
+        `;
+        document.getElementById(targetDiv).innerHTML = html;
+    }
+
+    function formatTarikhDariString(dateStr) {
+        if(!dateStr) return '';
+        const parts = dateStr.split('/');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`; 
+        return '';
+    }
+
+    function getBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    function renderJadual(senaraiRekod) {
+        const tbody = document.getElementById('isiJadual');
+        tbody.innerHTML = '';
+        if (!senaraiRekod || senaraiRekod.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#888;">Tiada rekod dijumpai.</td></tr>';
+            return;
+        }
+
+        senaraiRekod.forEach(item => {
+            let tr = document.createElement('tr');
+            let dotClass = (item.jenis === 'MASUK') ? 'dot-masuk' : 'dot-keluar';
+            
+            let linksHtml = '';
+            if(item.pautanUrl) {
+                let urls = item.pautanUrl.split('\n');
+                urls.forEach((url, idx) => {
+                    if(url.trim() !== '') linksHtml += `<br><a href="${url.trim()}" target="_blank" class="fail-link">📄 Lihat Fail ${urls.length > 1 ? (idx+1) : ''}</a>`;
+                });
+            }
+
+            let tajukPapar = (item.tajuk && item.tajuk.trim() !== '') ? item.tajuk : '<span style="color:#adb5bd; font-style:italic;">(Tiada maklumat diisi. Sila klik no surat untuk kemaskini)</span>';
+
+            tr.innerHTML = `
+                <td><span class="dot ${dotClass}"></span><a href="javascript:void(0)" class="no-surat-link" title="Klik untuk kemas kini data" onclick="bukaEditModal('${item.noSurat}')">${item.noSurat}</a></td>
+                <td>${tajukPapar} ${linksHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function tapisJadual() {
+        const kataKunci = document.getElementById('carianInput').value.toLowerCase();
+        const senaraiDitapis = dataSenaraiSemasa.filter(item => {
+            const noSuratTeks = (item.noSurat || '').toLowerCase();
+            const tajukTeks = (item.tajuk || '').toLowerCase();
+            return noSuratTeks.includes(kataKunci) || tajukTeks.includes(kataKunci);
+        });
+        renderJadual(senaraiDitapis);
+    }
+
+    function semakNombor() {
+        if (!kategoriTerpilih) return;
+        fetch(`${scriptURL}?kategori=${encodeURIComponent(kategoriTerpilih)}`, { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            let failBase = data.noFail || noFailTerpilihBase; 
+            currentGlobalJilid = data.jilid || "-";
+            if (currentGlobalJilid === "1") currentGlobalJilid = "-";
+            
+            let nextNum = data.nextNumber || 1;
+            
+            let fullNoSuratHtml = "";
+            
+            if (currentGlobalJilid === "-") {
+                fullNoSuratHtml = `${failBase} (<span style="color:#dc3545; font-weight:bold;">${nextNum}</span>)`;
+                currentCleanNoSuratSeterusnya = `${failBase} (${nextNum})`;
+            } else {
+                fullNoSuratHtml = `${failBase}JLD${currentGlobalJilid} (<span style="color:#dc3545; font-weight:bold;">${nextNum}</span>)`;
+                currentCleanNoSuratSeterusnya = `${failBase}JLD${currentGlobalJilid} (${nextNum})`;
+            }
+            
+            document.getElementById('topNoFailSeterusnya').innerHTML = fullNoSuratHtml;
+
+            if (data.senarai && data.senarai.length > 0) {
+                document.getElementById('ruangJadual').style.display = 'block';
+                dataSenaraiSemasa = data.senarai;
+                tapisJadual();
+            } else {
+                dataSenaraiSemasa = [];
+                renderJadual(dataSenaraiSemasa);
+            }
+        });
+    }
+
+    function salinNoFail() {
+        if (!currentCleanNoSuratSeterusnya) { return; }
+        let btn = document.getElementById('btnSalin');
+        
+        navigator.clipboard.writeText(currentCleanNoSuratSeterusnya).then(() => {
+            let asalText = btn.innerHTML;
+            btn.innerHTML = "✔ Disalin!";
+            btn.classList.add("berjaya");
+            setTimeout(() => {
+                btn.innerHTML = asalText;
+                btn.classList.remove("berjaya");
+            }, 2000);
+        }).catch(err => {
+            console.error('Gagal salin: ', err);
+            btn.innerHTML = "❌ Gagal";
+            setTimeout(() => { btn.innerHTML = "📋 Salin"; }, 2000);
+        });
+    }
+
+    function bukaModalTerdahulu() {
+        document.getElementById('terdahuluBaseFail').value = noFailTerpilihBase;
+        document.getElementById('terdahuluJilid').value = currentGlobalJilid;
+        document.getElementById('terdahuluNo').value = '';
+        
+        let radios = document.getElementsByName('terdahuluJenisSurat');
+        for(let i=0; i<radios.length; i++) radios[i].checked = false;
+        document.getElementById('ruanganAyatTerdahulu').innerHTML = '<div style="display: flex; height: 100%; align-items: center; color: #888; font-style: italic;">Sila pilih jenis surat di sebelah kiri terlebih dahulu.</div>';
+        document.getElementById('terdahuluStatusMessage').innerHTML = '';
+        
+        document.getElementById('terdahuluModal').style.display = 'block';
+    }
+
+    function tutupModalTerdahulu() { document.getElementById('terdahuluModal').style.display = 'none'; }
+
+    async function hantarData(actionType) {
+        let prefixId = (actionType === 'register') ? 'input' : 'terdahuluInput';
+        let nameRadio = (actionType === 'register') ? 'jenisSurat' : 'terdahuluJenisSurat';
+        let msgId = (actionType === 'register') ? 'statusMessage' : 'terdahuluStatusMessage';
+        let btnId = (actionType === 'register') ? 'submitBtn' : 'btnSimpanTerdahulu';
+
+        const jenisRadio = document.querySelector(`input[name="${nameRadio}"]:checked`);
+        const statusMsg = document.getElementById(msgId);
+        const btn = document.getElementById(btnId);
+
+        if (!jenisRadio) { statusMsg.innerHTML = '<span class="error">Sila pilih Jenis Surat!</span>'; return; }
+        
+        const jenis = jenisRadio.value;
+        const pihakEl = document.getElementById(`${prefixId}Pihak`);
+        const bthEl = document.getElementById(`${prefixId}Bth`);
+        const masukEl = document.getElementById(`${prefixId}Masuk`);
+        const catatanEl = document.getElementById(`${prefixId}Catatan`);
+        
+        const pihak = pihakEl ? pihakEl.value.trim() : '';
+        const bth = bthEl ? bthEl.value : '';
+        const masuk = masukEl ? masukEl.value : '';
+        const catatan = catatanEl ? catatanEl.value.trim() : '';
+        
+        const fileInput = document.getElementById(`${prefixId}UploadPdf`);
+        const tarikhEmailEl = document.getElementById(`${prefixId}TarikhEmail`);
+        const checkEmailEl = document.getElementById(`${prefixId}CheckEmail`);
+
+        let customJilid = '', customNombor = '';
+        if (actionType === 'edit_nofail') {
+            customJilid = document.getElementById('terdahuluJilid').value.trim();
+            customNombor = document.getElementById('terdahuluNo').value;
+            if (!customJilid || !customNombor) {
+                statusMsg.innerHTML = '<span class="error">Sila isi No Jilid dan No ( ) Surat!</span>'; return;
+            }
+        }
+
+        if (!pihak && !bth) {
+            let amaranText = "Pendaftaran Kosong:\nAnda pasti ingin mendaftar No Surat tanpa mengisi sebarang maklumat?\n\n(Anda boleh klik pada No Surat di jadual nanti untuk mengemaskininya.)";
+            if (!confirm(amaranText)) { return; }
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Memproses... (Sila tunggu)';
+        statusMsg.innerHTML = '';
+
+        function padDate(dStr) { 
+            if(!dStr) return '';
+            let p = dStr.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; 
+        }
+
+        let tajukPenuh = '';
+        if (pihak || bth) {
+            const prefix = jenis === 'MASUK' ? 'Surat DARIPADA' : 'Surat KEPADA';
+            tajukPenuh = `${prefix} <b>${pihak}</b> bertarikh <b>${padDate(bth)}</b> dimasukkan pada <b>${padDate(masuk)}</b>`;
+            if (catatan !== '') { tajukPenuh += ` Catatan: <b>${catatan}</b>`; }
+            if (jenis === 'KELUAR' && checkEmailEl && checkEmailEl.checked && tarikhEmailEl && tarikhEmailEl.value !== '') {
+                tajukPenuh += `. Telah di email kan pada <b>${padDate(tarikhEmailEl.value)}</b>`;
+            }
+        }
+
+        const payloadObject = {
+            action: actionType, kategori: kategoriTerpilih, jenis: jenis, tarikh: masuk, tajuk: tajukPenuh, files: [],
+            customJilid: customJilid, customNombor: customNombor
+        };
+
+        if (fileInput && fileInput.files.length > 0) {
+            for (let i = 0; i < fileInput.files.length; i++) {
+                let file = fileInput.files[i];
+                let base64 = await getBase64(file);
+                payloadObject.files.push({ mimeType: file.type, base64: base64.split(',')[1] });
+            }
+        }
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(payloadObject), headers: { 'Content-Type': 'text/plain;charset=utf-8' }})
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'berjaya') {
+                statusMsg.innerHTML = `<span class="success">Berjaya didaftarkan!</span>`;
+                setTimeout(() => {
+                    if (actionType === 'register') { 
+                        let r = document.getElementsByName('jenisSurat');
+                        for(let i=0; i<r.length; i++) r[i].checked = false;
+                        document.getElementById('ruanganAyatBaru').innerHTML = '<div style="display: flex; height: 100%; align-items: center; color: #888; font-style: italic;">Sila pilih jenis surat di sebelah kiri terlebih dahulu.</div>';
+                    } else { 
+                        tutupModalTerdahulu(); 
+                    }
+                    semakNombor(); 
+                }, 1000);
+            } else { statusMsg.innerHTML = `<span class="error">Ralat pelayan: ${data.mesej}</span>`; }
+            btn.disabled = false; btn.innerText = (actionType === 'register') ? 'Daftar Surat' : 'Daftar Surat Terdahulu';
+        });
+    }
+
+    function bukaEditModal(noSurat) {
+        const item = dataSenaraiSemasa.find(r => r.noSurat === noSurat);
+        if (!item) return;
+
+        currentEditNoSurat = noSurat;
+        document.getElementById('editPaparanNoSurat').innerText = noSurat;
+        document.getElementById('editStatusMessage').innerHTML = '';
+
+        let radios = document.getElementsByName('editJenisSurat');
+        for(let i=0; i<radios.length; i++) {
+            if (radios[i].value === item.jenis) radios[i].checked = true;
+        }
+        janaAyat('edit');
+
+        let tajukRaw = item.tajuk ? item.tajuk.replace(/<\/?b>/g, '') : '';
+        
+        let matchPihak = tajukRaw.match(/Surat (?:DARIPADA|KEPADA) (.*?) bertarikh/i);
+        let matchBth = tajukRaw.match(/bertarikh (.*?) dimasukkan pada/i);
+        let matchMasuk = tajukRaw.match(/dimasukkan pada (\d{2}\/\d{2}\/\d{4})/i);
+        let matchCatatan = tajukRaw.match(/Catatan: (.*?)(?=\. Telah di email|$)/i);
+        let matchEmail = tajukRaw.match(/Telah di email kan pada (\d{2}\/\d{2}\/\d{4})/i);
+
+        if (matchPihak) document.getElementById('editInputPihak').value = matchPihak[1].trim();
+        if (matchBth) document.getElementById('editInputBth').value = formatTarikhDariString(matchBth[1].trim());
+        if (matchMasuk) document.getElementById('editInputMasuk').value = formatTarikhDariString(matchMasuk[1].trim());
+        if (matchCatatan) document.getElementById('editInputCatatan').value = matchCatatan[1].trim();
+        
+        let elEmail = document.getElementById('editInputTarikhEmail');
+        let elCheck = document.getElementById('editInputCheckEmail');
+        
+        if (elEmail && elCheck) {
+            if (matchEmail) {
+                elEmail.value = formatTarikhDariString(matchEmail[1].trim());
+                elCheck.checked = true;
+            } else { elCheck.checked = false; }
+        }
+
+        currentEditUrls = [];
+        if (item.pautanUrl) currentEditUrls = item.pautanUrl.split('\n').filter(u => u.trim() !== '');
+        renderEditFilesUI();
+
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function tutupEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    function renderEditFilesUI() {
+        const container = document.getElementById('editFailSediaAdaBox');
+        container.innerHTML = '';
+        if (currentEditUrls.length === 0) {
+            container.innerHTML = '<span style="color:#adb5bd; font-style:italic; font-size:13px;">Tiada fail dilampirkan.</span>'; return;
+        }
+        currentEditUrls.forEach((url, index) => {
+            let row = document.createElement('div');
+            row.className = 'file-item';
+            row.innerHTML = `<span>📄 Fail ${index + 1} <a href="${url}" target="_blank" style="font-size:11px; text-decoration:none; margin-left:10px;">(Lihat)</a></span><button type="button" class="delete-file-btn" onclick="padamFailEdit(${index})">Buang Pautan</button>`;
+            container.appendChild(row);
+        });
+    }
+
+    function padamFailEdit(index) {
+        if (confirm('Amaran: Ini akan membuang pautan fail ini dari rekod. Teruskan?')) {
+            currentEditUrls.splice(index, 1); renderEditFilesUI();
+        }
+    }
+
+    async function simpanEdit() {
+        const jenisRadio = document.querySelector('input[name="editJenisSurat"]:checked');
+        const statusMsgEdit = document.getElementById('editStatusMessage');
+        const btnSimpan = document.getElementById('btnSimpanEdit');
+
+        if (!jenisRadio) return;
+        const jenisEdit = jenisRadio.value;
+        const pihakEdit = document.getElementById('editInputPihak').value.trim();
+        const bthEdit = document.getElementById('editInputBth').value;
+        const masukEdit = document.getElementById('editInputMasuk').value;
+        const catatanEdit = document.getElementById('editInputCatatan').value.trim();
+        const fileInputNew = document.getElementById('editInputUploadPdf');
+        const tarikhEmailEdit = document.getElementById('editInputTarikhEmail');
+        const checkEmailEdit = document.getElementById('editInputCheckEmail');
+
+        btnSimpan.disabled = true; btnSimpan.innerText = 'Menyimpan... (Sila tunggu)';
+        statusMsgEdit.innerHTML = '';
+
+        function padDate(dStr) { 
+            if(!dStr) return '';
+            let p = dStr.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; 
+        }
+
+        let tajukPenuhEdit = '';
+        if (pihakEdit || bthEdit) {
+            const prefix = jenisEdit === 'MASUK' ? 'Surat DARIPADA' : 'Surat KEPADA';
+            tajukPenuhEdit = `${prefix} <b>${pihakEdit}</b> bertarikh <b>${padDate(bthEdit)}</b> dimasukkan pada <b>${padDate(masukEdit)}</b>`;
+            if (catatanEdit !== '') { tajukPenuhEdit += ` Catatan: <b>${catatanEdit}</b>`; }
+            if (jenisEdit === 'KELUAR' && checkEmailEdit && checkEmailEdit.checked && tarikhEmailEdit && tarikhEmailEdit.value !== '') {
+                tajukPenuhEdit += `. Telah di email kan pada <b>${padDate(tarikhEmailEdit.value)}</b>`;
+            }
+        }
+
+        const payloadObject = {
+            action: 'edit', kategori: kategoriTerpilih, noSurat: currentEditNoSurat, jenis: jenisEdit,
+            tarikh: masukEdit, tajuk: tajukPenuhEdit, existingUrls: currentEditUrls, newFiles: []
+        };
+
+        if (fileInputNew && fileInputNew.files.length > 0) {
+            for (let i = 0; i < fileInputNew.files.length; i++) {
+                let file = fileInputNew.files[i]; let base64 = await getBase64(file);
+                payloadObject.newFiles.push({ mimeType: file.type, base64: base64.split(',')[1] });
+            }
+        }
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(payloadObject), headers: { 'Content-Type': 'text/plain;charset=utf-8' }})
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'berjaya') {
+                statusMsgEdit.innerHTML = `<span class="success">Kemas kini Berjaya!</span>`;
+                setTimeout(() => { tutupEditModal(); semakNombor(); }, 1500);
+            } else { statusMsgEdit.innerHTML = `<span class="error">Ralat: ${data.mesej}</span>`; }
+            btnSimpan.disabled = false; btnSimpan.innerText = 'Simpan Perubahan';
+        });
+    }
+
+    function padamRekodPenuh() {
+        if (confirm("AMARAN!\nAdakah anda pasti mahu memadam rekod ini SEPENUHNYA?")) {
+            const btnPadam = document.getElementById('btnPadamEdit');
+            const statusMsgEdit = document.getElementById('editStatusMessage');
+            btnPadam.disabled = true; btnPadam.innerText = 'Memadam...';
+            
+            const payloadObject = { action: 'delete', kategori: kategoriTerpilih, noSurat: currentEditNoSurat };
+
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify(payloadObject), headers: { 'Content-Type': 'text/plain;charset=utf-8' }})
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'berjaya') {
+                    statusMsgEdit.innerHTML = `<span class="success">Rekod dipadam!</span>`;
+                    setTimeout(() => { tutupEditModal(); semakNombor(); }, 1500);
+                } else { statusMsgEdit.innerHTML = `<span class="error">Ralat: ${data.mesej}</span>`; }
+                btnPadam.disabled = false; btnPadam.innerText = 'Padam Rekod';
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
